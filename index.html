@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CoinEarn – Watch & Earn</title>
+
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- Monetag SDK -->
+  <script src='//libtl.com/sdk.js' data-zone='11046518' data-sdk='show_11046518'></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --gold: #FFD166;
+      --gold-dark: #e6b800;
+      --bg: #0A0A0F;
+      --card: #13131A;
+      --card2: #1C1C27;
+      --accent: #6C63FF;
+      --green: #06D6A0;
+      --red: #EF476F;
+      --text: #F0F0FF;
+      --muted: #7070A0;
+      --border: rgba(255,255,255,0.07);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* BG Glow */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -120px; left: 50%;
+      transform: translateX(-50%);
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(108,99,255,0.15) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ---- HEADER ---- */
+    .header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      background: linear-gradient(135deg, var(--gold), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 6px 12px 6px 6px;
+    }
+
+    .user-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    /* ---- NAV TABS ---- */
+    .nav {
+      display: flex;
+      gap: 8px;
+      padding: 14px 20px 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    .nav-btn {
+      flex: 1;
+      padding: 10px 0;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.25s;
+      background: var(--card2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .nav-btn.active {
+      background: linear-gradient(135deg, var(--accent), #9B8FFF);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 4px 20px rgba(108,99,255,0.4);
+    }
+
+    /* ---- PAGES ---- */
+    .page { display: none; padding: 20px; position: relative; z-index: 5; }
+    .page.active { display: block; }
+
+    /* ---- COIN BALANCE CARD ---- */
+    .balance-card {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border: 1px solid rgba(255,209,102,0.25);
+      border-radius: 20px;
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .balance-card::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 140px; height: 140px;
+      background: radial-gradient(circle, rgba(255,209,102,0.12) 0%, transparent 70%);
+    }
+
+    .balance-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .balance-amount {
+      font-family: 'Syne', sans-serif;
+      font-size: 52px;
+      font-weight: 800;
+      color: var(--gold);
+      line-height: 1;
+      text-shadow: 0 0 30px rgba(255,209,102,0.4);
+    }
+
+    .balance-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .balance-sub span {
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    /* ---- EARN CARD ---- */
+    .earn-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .earn-card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .earn-card-desc {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .reward-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255,209,102,0.12);
+      border: 1px solid rgba(255,209,102,0.3);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gold);
+      margin-bottom: 16px;
+    }
+
+    /* ---- WATCH AD BUTTON ---- */
+    .watch-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--gold), #FF9F1C);
+      color: #0A0A0F;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.25s;
+      box-shadow: 0 6px 25px rgba(255,209,102,0.35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .watch-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255,209,102,0.5);
+    }
+
+    .watch-btn:active {
+      transform: translateY(0);
+    }
+
+    .watch-btn:disabled {
+      background: var(--card2);
+      color: var(--muted);
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .watch-btn .btn-icon { font-size: 20px; }
+
+    /* Shimmer on button */
+    .watch-btn::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+      animation: shimmer 2.5s infinite;
+    }
+
+    .watch-btn:disabled::after { display: none; }
+
+    @keyframes shimmer {
+      0% { left: -100%; }
+      100% { left: 200%; }
+    }
+
+    /* ---- COOLDOWN ---- */
+    .cooldown-bar-wrap {
+      margin-top: 12px;
+      display: none;
+    }
+
+    .cooldown-bar-wrap.show { display: block; }
+
+    .cooldown-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .cooldown-bar {
+      height: 6px;
+      background: var(--card2);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .cooldown-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--gold));
+      border-radius: 10px;
+      transition: width 1s linear;
+    }
+
+    /* ---- STATS ROW ---- */
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ---- TOAST ---- */
+    .toast {
+      position: fixed;
+      top: 20px; left: 50%;
+      transform: translateX(-50%) translateY(-80px);
+      background: var(--green);
+      color: #0A0A0F;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px 24px;
+      border-radius: 30px;
+      z-index: 9999;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      white-space: nowrap;
+      box-shadow: 0 8px 30px rgba(6,214,160,0.4);
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast.error {
+      background: var(--red);
+      box-shadow: 0 8px 30px rgba(239,71,111,0.4);
+      color: #fff;
+    }
+
+    /* ---- COIN BURST ANIMATION ---- */
+    .coin-burst {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      font-size: 24px;
+      animation: burst 1.2s ease-out forwards;
+    }
+
+    @keyframes burst {
+      0%   { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-120px) scale(0.4); opacity: 0; }
+    }
+
+    /* ---- WITHDRAW PAGE ---- */
+    .withdraw-hero {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 24px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .withdraw-hero-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .withdraw-hero-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .rate-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: var(--card2);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .rate-item {
+      text-align: center;
+    }
+
+    .rate-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--gold);
+    }
+
+    .rate-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .rate-arrow {
+      font-size: 22px;
+      color: var(--muted);
+    }
+
+    .progress-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .progress-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .progress-pct {
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .progress-bar {
+      height: 10px;
+      background: var(--card2);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--gold));
+      border-radius: 10px;
+      transition: width 0.6s ease;
+    }
+
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .withdraw-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--green), #00B4D8);
+      color: #0A0A0F;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow: 0 6px 25px rgba(6,214,160,0.3);
+      margin-bottom: 12px;
+    }
+
+    .withdraw-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .withdraw-btn.locked {
+      background: var(--card2);
+      color: var(--muted);
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Under Development Banner */
+    .under-dev {
+      display: none;
+      background: rgba(108,99,255,0.1);
+      border: 1px dashed var(--accent);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .under-dev.show { display: block; }
+
+    .under-dev-icon { font-size: 40px; margin-bottom: 10px; }
+
+    .under-dev-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .under-dev-sub {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ---- HISTORY ---- */
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+
+    .history-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .history-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: rgba(255,209,102,0.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+
+    .history-title {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .history-time {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .history-amount {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--green);
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 12px;
+    }
+
+    /* Loading overlay for ad */
+    .ad-loading {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,10,15,0.85);
+      z-index: 9998;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      backdrop-filter: blur(6px);
+    }
+
+    .ad-loading.show { display: flex; }
+
+    .spin {
+      width: 50px; height: 50px;
+      border: 3px solid var(--card2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .ad-loading-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast">+15 Coins Earned! 🎉</div>
+
+<!-- Ad Loading Overlay -->
+<div class="ad-loading" id="adLoading">
+  <div class="spin"></div>
+  <div class="ad-loading-text">Loading Ad...</div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">⚡ CoinEarn</div>
+  <div class="user-info">
+    <div class="user-avatar" id="userAvatar">?</div>
+    <div class="user-name" id="userName">Loading...</div>
+  </div>
+</div>
+
+<!-- Nav -->
+<div class="nav">
+  <button class="nav-btn active" onclick="showPage('earn')">🎬 Earn</button>
+  <button class="nav-btn" onclick="showPage('withdraw')">💸 Withdraw</button>
+</div>
+
+<!-- ===== EARN PAGE ===== -->
+<div class="page active" id="page-earn">
+
+  <!-- Balance -->
+  <div class="balance-card">
+    <div class="balance-label">Your Balance</div>
+    <div class="balance-amount" id="coinDisplay">0</div>
+    <div class="balance-sub">coins &nbsp;|&nbsp; <span id="usdtVal">0.00</span> USDT</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-value" id="adsWatched">0</div>
+      <div class="stat-label">Ads Watched</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="todayEarned">0</div>
+      <div class="stat-label">Earned Today</div>
+    </div>
+  </div>
+
+  <!-- Earn Card -->
+  <div class="earn-card">
+    <div class="earn-card-title">🎬 Watch Ad & Earn</div>
+    <div class="earn-card-desc">
+      Watch a short ad and instantly earn coins to your balance. Fast, simple, and rewarding!
+    </div>
+    <div class="reward-badge">🪙 +15 Coins per Ad</div>
+
+    <button class="watch-btn" id="watchBtn" onclick="watchAd()">
+      <span class="btn-icon">▶️</span>
+      Watch Ad & Earn 15 Coins
+    </button>
+
+    <div class="cooldown-bar-wrap" id="cooldownWrap">
+      <div class="cooldown-label">
+        <span>Next ad available in...</span>
+        <span id="cooldownSec">30s</span>
+      </div>
+      <div class="cooldown-bar">
+        <div class="cooldown-fill" id="cooldownFill" style="width:100%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="section-title">Recent Activity</div>
+  <div id="historyList">
+    <div style="text-align:center; color:var(--muted); font-size:13px; padding:20px 0;">
+      No activity yet. Watch an ad to start earning!
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== WITHDRAW PAGE ===== -->
+<div class="page" id="page-withdraw">
+
+  <div class="withdraw-hero">
+    <div class="withdraw-hero-title">💸 Withdraw Earnings</div>
+    <div class="withdraw-hero-sub">Convert your coins to USDT instantly</div>
+
+    <div class="rate-box">
+      <div class="rate-item">
+        <div class="rate-val">200</div>
+        <div class="rate-label">Coins</div>
+      </div>
+      <div class="rate-arrow">→</div>
+      <div class="rate-item">
+        <div class="rate-val">1 USDT</div>
+        <div class="rate-label">Reward</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-section">
+    <div class="progress-header">
+      <div class="progress-title">Progress to Withdraw</div>
+      <div class="progress-pct" id="progressPct">0%</div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <div class="progress-labels">
+      <span id="progressCurrent">0 / 200 coins</span>
+      <span>Min: 200 coins</span>
+    </div>
+  </div>
+
+  <!-- Withdraw Button -->
+  <button class="withdraw-btn locked" id="withdrawBtn" onclick="tryWithdraw()">
+    🔒 Need 200 Coins to Withdraw
+  </button>
+
+  <!-- Under Development Banner -->
+  <div class="under-dev" id="underDev">
+    <div class="under-dev-icon">🚧</div>
+    <div class="under-dev-title">Under Development</div>
+    <div class="under-dev-sub">
+      Withdrawal feature is coming soon!<br>
+      Your coins are safe and will be withdrawable once this feature goes live. Stay tuned! 🚀
+    </div>
+  </div>
+
+  <!-- Info -->
+  <div style="margin-top:16px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px;">
+    <div class="section-title" style="margin-bottom:10px;">ℹ️ Info</div>
+    <div style="font-size:13px; color:var(--muted); line-height:1.8;">
+      • Minimum withdrawal: <strong style="color:var(--text);">200 coins</strong><br>
+      • 200 coins = <strong style="color:var(--gold);">1 USDT</strong><br>
+      • Payments via <strong style="color:var(--text);">Crypto Wallet</strong><br>
+      • Processing time: <strong style="color:var(--text);">1–3 days</strong>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ---- Init Telegram ----
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
+
+  // ---- State ----
+  let coins = parseInt(localStorage.getItem('coins') || '0');
+  let adsWatched = parseInt(localStorage.getItem('adsWatched') || '0');
+  let todayEarned = parseInt(localStorage.getItem('todayEarned') || '0');
+  let history = JSON.parse(localStorage.getItem('history') || '[]');
+
+  let cooldownActive = false;
+  const COOLDOWN_SEC = 30;
+  const COINS_PER_AD = 15;
+  const MIN_WITHDRAW = 200;
+
+  // ---- User Info from Telegram ----
+  function initUser() {
+    const user = tg?.initDataUnsafe?.user;
+    if (user) {
+      document.getElementById('userName').textContent = user.first_name || 'User';
+      const initials = (user.first_name?.[0] || '?').toUpperCase();
+      document.getElementById('userAvatar').textContent = initials;
+    } else {
+      document.getElementById('userName').textContent = 'User';
+      document.getElementById('userAvatar').textContent = 'U';
+    }
+  }
+
+  // ---- Update UI ----
+  function updateUI() {
+    document.getElementById('coinDisplay').textContent = coins;
+    document.getElementById('usdtVal').textContent = (coins / MIN_WITHDRAW).toFixed(2);
+    document.getElementById('adsWatched').textContent = adsWatched;
+    document.getElementById('todayEarned').textContent = todayEarned;
+
+    // Progress
+    const pct = Math.min((coins / MIN_WITHDRAW) * 100, 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressPct').textContent = Math.floor(pct) + '%';
+    document.getElementById('progressCurrent').textContent = `${coins} / ${MIN_WITHDRAW} coins`;
+
+    // Withdraw button
+    const wBtn = document.getElementById('withdrawBtn');
+    if (coins >= MIN_WITHDRAW) {
+      wBtn.classList.remove('locked');
+      wBtn.textContent = '💸 Withdraw ' + Math.floor(coins / MIN_WITHDRAW) + ' USDT';
+    } else {
+      wBtn.classList.add('locked');
+      wBtn.textContent = `🔒 Need ${MIN_WITHDRAW - coins} more coins`;
+    }
+
+    // History
+    renderHistory();
+
+    // Save
+    localStorage.setItem('coins', coins);
+    localStorage.setItem('adsWatched', adsWatched);
+    localStorage.setItem('todayEarned', todayEarned);
+    localStorage.setItem('history', JSON.stringify(history));
+  }
+
+  // ---- Render History ----
+  function renderHistory() {
+    const el = document.getElementById('historyList');
+    if (history.length === 0) {
+      el.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:13px; padding:20px 0;">No activity yet. Watch an ad to start earning!</div>`;
+      return;
+    }
+    el.innerHTML = history.slice().reverse().slice(0, 8).map(h => `
+      <div class="history-item">
+        <div class="history-left">
+          <div class="history-icon">🎬</div>
+          <div>
+            <div class="history-title">${h.title}</div>
+            <div class="history-time">${h.time}</div>
+          </div>
+        </div>
+        <div class="history-amount">+${h.coins} 🪙</div>
+      </div>
+    `).join('');
+  }
+
+  // ---- Show Page ----
+  function showPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    event.target.classList.add('active');
+    updateUI();
+  }
+
+  // ---- Watch Ad ----
+  function watchAd() {
+    if (cooldownActive) return;
+
+    const btn = document.getElementById('watchBtn');
+    btn.disabled = true;
+
+    // Show loading
+    document.getElementById('adLoading').classList.add('show');
+
+    // Show Monetag Rewarded Ad
+    show_11046518().then(() => {
+      // Ad watched successfully
+      document.getElementById('adLoading').classList.remove('show');
+
+      // Add coins
+      coins += COINS_PER_AD;
+      adsWatched += 1;
+      todayEarned += COINS_PER_AD;
+
+      // Add to history
+      const now = new Date();
+      history.push({
+        title: 'Watched Ad',
+        time: now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+        coins: COINS_PER_AD
+      });
+
+      updateUI();
+      showToast(`+${COINS_PER_AD} Coins Earned! 🎉`, false);
+      spawnCoins();
+      startCooldown();
+
+    }).catch((err) => {
+      document.getElementById('adLoading').classList.remove('show');
+      btn.disabled = false;
+      showToast('Ad failed. Try again!', true);
+    });
+  }
+
+  // ---- Cooldown ----
+  function startCooldown() {
+    cooldownActive = true;
+    let remaining = COOLDOWN_SEC;
+    const wrap = document.getElementById('cooldownWrap');
+    const fill = document.getElementById('cooldownFill');
+    const sec = document.getElementById('cooldownSec');
+    wrap.classList.add('show');
+
+    const interval = setInterval(() => {
+      remaining--;
+      sec.textContent = remaining + 's';
+      fill.style.width = (remaining / COOLDOWN_SEC * 100) + '%';
+
+      if (remaining <= 0) {
+        clearInterval(interval);
+        cooldownActive = false;
+        wrap.classList.remove('show');
+        const btn = document.getElementById('watchBtn');
+        btn.disabled = false;
+      }
+    }, 1000);
+  }
+
+  // ---- Try Withdraw ----
+  function tryWithdraw() {
+    document.getElementById('underDev').classList.add('show');
+    showToast('🚧 Under Development!', true);
+  }
+
+  // ---- Toast ----
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isError ? ' error' : '');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  // ---- Coin Burst ----
+  function spawnCoins() {
+    const emojis = ['🪙','💰','✨','⚡'];
+    for (let i = 0; i < 6; i++) {
+      const el = document.createElement('div');
+      el.className = 'coin-burst';
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      el.style.left = (30 + Math.random() * 40) + 'vw';
+      el.style.top = '60vh';
+      el.style.animationDelay = (i * 0.1) + 's';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 1500);
+    }
+  }
+
+  // ---- Init ----
+  initUser();
+  updateUI();
+</script>
+</body>
+</html>
